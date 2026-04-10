@@ -3,238 +3,146 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Protocol 404: The LogicLeap</title>
+    <title>LogicLeap: Protocol 404 - OVERLOAD</title>
     <style>
-        :root {
-            --neon-green: #39ff14;
-            --dark-bg: #0a0a0a;
-            --terminal-gray: #1a1a1a;
-            --error-red: #ff4b2b;
-        }
-
-        body {
-            background-color: var(--dark-bg);
-            color: var(--neon-green);
-            font-family: 'Courier New', Courier, monospace;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-        }
-
-        #game-container {
-            width: 90%;
-            max-width: 800px;
-            background: var(--terminal-gray);
-            border: 2px solid var(--neon-green);
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 15px rgba(57, 255, 20, 0.2);
-        }
-
-        .header {
-            text-align: center;
-            border-bottom: 1px solid var(--neon-green);
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-        }
-
-        .persistence-btn {
-            background: var(--error-red);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            cursor: pointer;
-            font-weight: bold;
-            margin-bottom: 20px;
-            border-radius: 4px;
-        }
-
-        .room { display: none; }
-        .active { display: block; }
-
-        .task-box {
-            background: #222;
-            border: 1px dashed var(--neon-green);
-            padding: 10px;
-            margin: 5px;
-            cursor: grab;
-            display: inline-block;
-        }
-
-        .drop-zone {
-            border: 2px solid #444;
-            min-height: 50px;
-            margin: 10px 0;
-            padding: 10px;
-            background: #111;
-        }
-
-        .code-snippet {
-            background: #000;
-            padding: 10px;
-            margin: 10px 0;
-            border-left: 4px solid var(--neon-green);
-        }
-
-        select, button.submit-btn {
-            background: var(--neon-green);
-            color: black;
-            border: none;
-            padding: 8px 15px;
-            margin-top: 10px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        .hidden-info { color: #555; text-decoration: line-through; }
-        .crucial-info { color: white; cursor: pointer; border-bottom: 1px solid white; }
+        :root { --neon: #39ff14; --bg: #050505; --panel: #111; --critical: #ff4b2b; }
+        body { background: var(--bg); color: var(--neon); font-family: 'Courier New', monospace; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; overflow: hidden; }
+        #terminal { width: 90%; max-width: 700px; background: var(--panel); border: 2px solid var(--neon); padding: 30px; position: relative; box-shadow: 0 0 20px rgba(57,255,20,0.1); }
+        #timer-display { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; border: 1px solid var(--neon); padding: 5px 10px; }
+        .screen { display: none; } .active { display: block; }
+        .code-block { background: #000; padding: 15px; margin: 15px 0; border-left: 3px solid var(--neon); font-size: 0.9rem; }
+        .options-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+        button.opt { background: transparent; color: var(--neon); border: 1px solid var(--neon); padding: 12px; text-align: left; cursor: pointer; }
+        button.opt:hover { background: var(--neon); color: black; }
+        .glitch { animation: shake 0.2s linear 3; border-color: var(--critical) !important; }
+        @keyframes shake { 0% { transform: translate(5px); } 50% { transform: translate(-5px); } 100% { transform: translate(0); } }
     </style>
 </head>
-<body>
+<body onload="initGame()">
 
-    <button class="persistence-btn" onclick="resetGame()">[RESTART GAME: PERSISTENCE]</button>
-
-    <div id="game-container">
-        <div class="header">
-            <h1>SYSTEM STATUS: PROTOCOL 404</h1>
-            <p id="room-title">Room 1: The Shattered System (Decomposition)</p>
+    <div id="terminal">
+        <div id="timer-display">08:00</div>
+        
+        <div id="game-content" class="screen active">
+            <h2 id="pillar-title">INITIALIZING...</h2>
+            <p id="scenario-text">Loading Protocol 404...</p>
+            <div class="code-block" id="task-detail">Waiting for system handshake...</div>
+            <div class="options-grid" id="options"></div>
         </div>
 
-        <div id="room1" class="room active">
-            <p><strong>Scenario:</strong> The master program "School Fundraiser" has crashed. Break it down into sub-tasks.</p>
-            <div id="tasks">
-                <div class="task-box" draggable="true" id="t1" ondragstart="drag(event)">Find a DJ</div>
-                <div class="task-box" draggable="true" id="t2" ondragstart="drag(event)">Buy Popcorn</div>
-                <div class="task-box" draggable="true" id="t3" ondragstart="drag(event)">Paint Banners</div>
-                <div class="task-box" draggable="true" id="t4" ondragstart="drag(event)">Print Tickets</div>
-            </div>
-            
-            <p>Drop into <strong>MUSIC</strong> category:</p>
-            <div class="drop-zone" id="music-zone" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
-            
-            <button class="submit-btn" onclick="checkRoom1()">Unlock Next Room</button>
+        <div id="win" class="screen">
+            <h2>SUCCESS: CORE ACCESSED</h2>
+            <p>You have cleared 20 layers of logic. System secure.</p>
+        </div>
+        <div id="fail" class="screen">
+            <h2 style="color:var(--critical)">FAILURE: SESSION TIMEOUT</h2>
+            <button class="opt" onclick="location.reload()">RESTART (PERSISTENCE)</button>
         </div>
 
-        <div id="room2" class="room">
-            <p><strong>The Pattern Vault:</strong> Logs show: 2023: Pizza out by 7:00pm. 2024: Pizza out by 7:15pm.</p>
-            <p>Identify the logical trend:</p>
-            <select id="pattern-select">
-                <option value="wrong">People hate pizza</option>
-                <option value="correct">Demand exceeds current supply; order more</option>
-                <option value="wrong">The DJ is too loud</option>
-            </select>
-            <button class="submit-btn" onclick="checkRoom2()">Validate Trend</button>
-        </div>
-
-        <div id="room3" class="room">
-            <p><strong>Fluff Filter:</strong> Click the "Fluff" to delete it. Keep only the Crucial Info.</p>
-            <div id="abstraction-text">
-                <span class="crucial-info" id="crucial1">Total Budget is $500.</span>
-                <span class="fluff" onclick="this.className='hidden-info'" style="cursor:pointer">The napkins are teal.</span>
-                <span class="fluff" onclick="this.className='hidden-info'" style="cursor:pointer">The Principal likes Jazz.</span>
-            </div>
-            <button class="submit-btn" onclick="checkRoom3()">Filter Complete</button>
-        </div>
-
-        <div id="room4" class="room">
-            <p><strong>The Step-by-Step Script:</strong> Reorder the logic.</p>
-            <ol>
-                <li><input type="number" id="algo1" placeholder="Step #"> Set up tables</li>
-                <li><input type="number" id="algo2" placeholder="Step #"> Get the key to the gym</li>
-                <li><input type="number" id="algo3" placeholder="Step #"> Let the students in</li>
-            </ol>
-            <button class="submit-btn" onclick="checkRoom4()">Execute Script</button>
-        </div>
-
-        <div id="room5" class="room">
-            <p><strong>The Debugger's Final Stand:</strong> Identify the Error Types.</p>
-            
-            <div class="code-snippet">console.log(Welcome to Class);</div>
-            <select id="err1"><option>Syntax</option><option>Name</option><option>Type</option><option>Logic</option></select>
-
-            <div class="code-snippet">var name = "Adam"; log(usr);</div>
-            <select id="err2"><option>Syntax</option><option>Name</option><option>Type</option><option>Logic</option></select>
-
-            <div class="code-snippet">var total = 10 + "5";</div>
-            <select id="err3"><option>Syntax</option><option>Name</option><option>Type</option><option>Logic</option></select>
-
-            <div class="code-snippet">if (x = 5) { }</div>
-            <select id="err4"><option>Syntax</option><option>Name</option><option>Type</option><option>Logic</option></select>
-
-            <button class="submit-btn" onclick="checkRoom5()">HARD RESET SYSTEM</button>
-        </div>
-
-        <div id="win" class="room">
-            <h1 style="color: white;">SYSTEM RESTORED</h1>
-            <p>Protocol 404 bypassed. You have mastered the Computational Thinking pillars.</p>
-        </div>
+        <div id="status-bar" style="margin-top:20px; font-size:10px;">PROGRESS: 0 / 20</div>
     </div>
 
     <script>
-        // Core Navigation
-        function showRoom(roomNum) {
-            document.querySelectorAll('.room').forEach(r => r.classList.remove('active'));
-            document.getElementById('room' + roomNum).classList.add('active');
-            document.getElementById('room-title').innerText = "Room " + roomNum;
+        let timeLeft = 480; // 8 Minutes for 20 rooms
+        let currentStep = 0;
+        let timerId;
+
+        const library = {
+            decomposition: [
+                { q: "Decompose 'Building a Robot'", d: "Which is a core sub-task?", o: ["Buying Sensors", "Naming the Robot", "Painting it red"], a: 0 },
+                { q: "Decompose 'Creating a Website'", d: "Which belongs in the 'Front-End' module?", o: ["Database setup", "Navigation Menu design", "Server cooling"], a: 1 },
+                { q: "Decompose 'School Lunch'", d: "Which is a logistical sub-task?", o: ["Tasting the food", "Supply chain ordering", "The color of the tray"], a: 1 },
+                { q: "Decompose 'Video Game'", d: "Which is a 'Mechanics' sub-task?", o: ["Box Art", "Character Physics", "Marketing"], a: 1 },
+                { q: "Decompose 'The Library'", d: "How do we break down 'Organization'?", o: ["Buying books", "Dewey Decimal Sorting", "Cleaning floors"], a: 1 }
+            ],
+            abstraction: [
+                { q: "Abstract: 'Self-Driving Car'", d: "What is the CRUCIAL data?", o: ["Car color", "Distance to obstacle", "The driver's age"], a: 1 },
+                { q: "Abstract: 'Weather App'", d: "What info is 'fluff'?", o: ["Temperature", "The font of the logo", "Wind Speed"], a: 1 },
+                { q: "Abstract: 'Ordering Pizza'", d: "What is the key variable?", o: ["The delivery driver's car", "Toppings/Address", "The box shape"], a: 1 },
+                { q: "Abstract: 'Class Schedule'", d: "What can be ignored?", o: ["The room number", "The teacher's middle name", "The start time"], a: 1 },
+                { q: "Abstract: 'Spotify Playlist'", d: "What is essential data?", o: ["The artist name", "The color of the album art", "The date you liked it"], a: 1 }
+            ],
+            patterns: [
+                { q: "Pattern: 2, 4, 8, 16...", d: "Identify the rule:", o: ["Add 2", "Multiply by 2", "Subtract 1"], a: 1 },
+                { q: "Pattern: Red, Blue, Red, Blue...", d: "Predict the next:", o: ["Green", "Red", "Yellow"], a: 1 },
+                { q: "Pattern: Morning, Noon, Evening...", d: "Identify the cycle:", o: ["Random", "Chronological", "Reverse"], a: 1 },
+                { q: "Pattern: If Button A is clicked, Light B turns on.", d: "Rule:", o: ["A controls B", "B controls A", "No relation"], a: 0 },
+                { q: "Pattern: Logs show errors every Friday at 4pm.", d: "Rule:", o: ["Weekend update bug", "Random failure", "User error"], a: 0 }
+            ],
+            algorithmic: [
+                { q: "Algorithm: 'Making Toast'", d: "What is Step 1?", o: ["Eat toast", "Put bread in toaster", "Buy butter"], a: 1 },
+                { q: "Algorithm: 'Entering Room'", d: "Identify the logic:", o: ["1.Open Door -> 2.Walk", "1.Walk -> 2.Open Door", "1.Close Door -> 2.Walk"], a: 0 },
+                { q: "Algorithm: 'Math Problem'", d: "Correct sequence:", o: ["1.Answer -> 2.Work", "1.Read -> 2.Solve -> 3.Check", "1.Check -> 2.Read"], a: 1 },
+                { q: "Algorithm: 'Charging Phone'", d: "Logical start:", o: ["Find cable", "Check battery 100%", "Unplug wall"], a: 0 },
+                { q: "Algorithm: 'Printing'", d: "Step 2 after 'Open File'?", o: ["Turn off printer", "Select Print", "Close File"], a: 1 }
+            ]
+        };
+
+        function initGame() {
+            startTimer();
+            renderStep();
         }
 
-        function resetGame() {
-            location.reload();
+        function startTimer() {
+            timerId = setInterval(() => {
+                timeLeft--;
+                let m = Math.floor(timeLeft/60);
+                let s = timeLeft%60;
+                document.getElementById('timer-display').innerText = `${m}:${s<10?'0':''}${s}`;
+                if(timeLeft <= 0) endGame(false);
+            }, 1000);
         }
 
-        // Drag and Drop Logic for Room 1
-        function allowDrop(ev) { ev.preventDefault(); }
-        function drag(ev) { ev.dataTransfer.setData("text", ev.target.id); }
-        function drop(ev) {
-            ev.preventDefault();
-            var data = ev.dataTransfer.getData("text");
-            ev.target.appendChild(document.getElementById(data));
+        function renderStep() {
+            if(currentStep >= 20) { return showBoss(); }
+            
+            const categories = Object.keys(library);
+            const cat = categories[Math.floor(currentStep/5)];
+            const room = library[cat][currentStep % 5];
+            
+            document.getElementById('pillar-title').innerText = room.q;
+            document.getElementById('scenario-text').innerText = `SECURITY LAYER ${currentStep + 1}/20`;
+            document.getElementById('task-detail').innerText = room.d;
+            
+            const optCont = document.getElementById('options');
+            optCont.innerHTML = "";
+            room.o.forEach((text, i) => {
+                const btn = document.createElement('button');
+                btn.className = "opt";
+                btn.innerText = text;
+                btn.onclick = () => (i === room.a) ? next() : wrong();
+                optCont.appendChild(btn);
+            });
+            document.getElementById('status-bar').innerText = `PROGRESS: ${currentStep} / 20`;
         }
 
-        // Room Checks
-        function checkRoom1() {
-            const musicZone = document.getElementById('music-zone');
-            if (musicZone.contains(document.getElementById('t1'))) {
-                showRoom(2);
-            } else { alert("Error: Sub-task mismatch. Try again."); }
+        function next() {
+            currentStep++;
+            renderStep();
         }
 
-        function checkRoom2() {
-            if (document.getElementById('pattern-select').value === "correct") {
-                showRoom(3);
-            } else { alert("Error: Pattern not recognized."); }
+        function wrong() {
+            timeLeft -= 15;
+            document.getElementById('terminal').classList.add('glitch');
+            setTimeout(() => document.getElementById('terminal').classList.remove('glitch'), 500);
         }
 
-        function checkRoom3() {
-            const fluff = document.querySelectorAll('.fluff');
-            let allHidden = true;
-            fluff.forEach(f => { if(f.className !== 'hidden-info') allHidden = false; });
-            if (allHidden) showRoom(4);
-            else alert("Error: System still contains fluff.");
+        function showBoss() {
+            // Reusing your Room 5 logic for the Final Debugging Stand
+            document.getElementById('game-content').innerHTML = `
+                <h2>FINAL BOSS: THE DEBUGGER</h2>
+                <div class="code-block">console.log(Welcome to Class);</div>
+                <div class="options-grid">
+                    <button class="opt" onclick="endGame(true)">SYNTAX ERROR (FINISH)</button>
+                    <button class="opt" onclick="wrong()">NAME ERROR</button>
+                </div>
+            `;
         }
 
-        function checkRoom4() {
-            if (document.getElementById('algo1').value == "2" && 
-                document.getElementById('algo2').value == "1" && 
-                document.getElementById('algo3').value == "3") {
-                showRoom(5);
-            } else { alert("Error: Logic sequence failed."); }
-        }
-
-        function checkRoom5() {
-            const e1 = document.getElementById('err1').value;
-            const e2 = document.getElementById('err2').value;
-            const e3 = document.getElementById('err3').value;
-            const e4 = document.getElementById('err4').value;
-
-            if (e1 === "Syntax" && e2 === "Name" && e3 === "Type" && e4 === "Logic") {
-                document.getElementById('room5').classList.remove('active');
-                document.getElementById('win').classList.add('active');
-                document.getElementById('room-title').innerText = "ESCAPE SUCCESSFUL";
-            } else { alert("DEBUG FAILED: Check your error categories."); }
+        function endGame(won) {
+            clearInterval(timerId);
+            document.getElementById('game-content').style.display = "none";
+            document.getElementById(won ? 'win' : 'fail').style.display = "block";
         }
     </script>
 </body>
